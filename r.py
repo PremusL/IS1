@@ -170,11 +170,6 @@ def build_tree(tokens):
 
 
 # Test the functions with an example equation
-equation = "(x + 10) * 5 + 9/2"
-equation1 = "x + (3 - 4)"
-
-tokens1 = parse_equation(equation)
-print(tokens1)
 
 
 
@@ -208,16 +203,9 @@ def calculate_tree(node, x):
             return calculate_tree(node.left, x) / calculate_tree(node.right, x)
         elif node.value == '**':
             return calculate_tree(node.left, x) ** calculate_tree(node.right, x)
-
-
-
-# print(calculate_tree(tree, 5))
-# (x + 10) * 5 + 9 / 2
-# (x 10 +) 5 9 2 * + /
-
 def fix2(tokens):
-
-    for i in range(len(tokens)):
+    i = 0
+    while i < len(tokens):
         if tokens[i] == "**":
             if tokens[i+1] == "(":
                 #while
@@ -234,9 +222,14 @@ def fix2(tokens):
                     m -= 1
                 tokens.insert(m, "(")
             else:
-                tokens.insert(i - 2, "(")
+                tokens.insert(i - 1, "(")
+            i += 1
 
-    for i in range(len(tokens)):
+        i += 1
+
+
+    i = 0
+    while i < len(tokens):
         if tokens[i] in "*/":
             if tokens[i+1] == "(":
                 #while
@@ -253,16 +246,25 @@ def fix2(tokens):
                     m -= 1
                 tokens.insert(m, "(")
             else:
-                tokens.insert(i - 2, "(")
+                tokens.insert(i - 1, "(")
 
+            i += 1
+
+        i += 1
     return tokens
 
 # fix_sort(tokens)
+equation = "(x + 10) * 5 + 9/2"
+equation1 = "x + 3 - 4 * 3 - 2 / 1"
+
+tokens1 = parse_equation(equation1)
+print(tokens1)
+
 tokens3 = fix2(tokens1)
 print(tokens3)
 tokens = sort_tokens(tokens3)
 
-print(tokens)
+# print(tokens)
 
 
 tree = build_tree(tokens)
