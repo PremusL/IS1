@@ -1,5 +1,5 @@
 from pyparsing import Word, nums, alphas, oneOf
-
+import math
 
 # Define a class for tree nodes
 class Node:
@@ -12,38 +12,38 @@ class Node:
         return self.value
 
 # Define a function to parse an equation and convert it into a list of tokens
-def parse_equation(string):
-    tokens = []
-    star = 0
-    number = ''
-    for c in string:
-        if (c in "-+*/()") or c.isalpha():
+# def parse_equation(string):
+#     tokens = []
+#     star = 0
+#     number = ''
+#     for c in string:
+#         if (c in "-+*/()") or c.isalpha():
 
-            if (number != ''):
-                tokens.append(number)
-                number = ''
-            if c == '*':
-                star += 1
-                continue
-            else:
-                tokens.append(c)
+#             if (number != ''):
+#                 tokens.append(number)
+#                 number = ''
+#             if c == '*':
+#                 star += 1
+#                 continue
+#             else:
+#                 tokens.append(c)
             
-            if star > 1:
-                tokens.append('**')
-                star = 0
-            if star == 1:
-                tokens.append('*')
-                tokens.append(c)
-                star = 0
-        if c.isnumeric():
-            if (star == 1):
-                tokens.append("*")
-                star = 0
-            number += c
+#             if star > 1:
+#                 tokens.append('**')
+#                 star = 0
+#             if star == 1:
+#                 tokens.append('*')
+#                 tokens.append(c)
+#                 star = 0
+#         if c.isnumeric():
+#             if (star == 1):
+#                 tokens.append("*")
+#                 star = 0
+#             number += c
 
-    if number != '':
-        tokens.append(number)
-    return tokens
+#     if number != '':
+#         tokens.append(number)
+#     return tokens
 
 def parse_equation1(string):
     tokens = []
@@ -52,10 +52,29 @@ def parse_equation1(string):
     for c in another:
         tokens.append(c)
 
-    # for i in range(len(tokens)):
-
+    tokens2 = []
+    operand = False
+    if (tokens[0] == '-'):
+        tokens2.append(str(int(tokens[1])*-1))
     
-    return tokens
+    for i in range(len(tokens)):
+
+        if i > 2 and tokens[i-1] in "*^-+/" and (tokens[i] == "-" or tokens[i] == "+"):
+            if tokens[i] == "-":
+                operand = True
+            
+        else:
+            if tokens[i].isnumeric():
+                t = int(tokens[i])
+                if operand:
+                    t *= -1
+                tokens2.append(str(t))
+            else:
+                tokens2.append(tokens[i])
+            operand = False
+            
+
+    return tokens2
 
 #put the equation into correct form
 def sort_tokens(tokens):
@@ -89,15 +108,20 @@ def build_tree(tokens):
     # Create an empty stack and an empty tree
     stack = []
     tree = None
-    operator = False;
+
     # For each token in the list
     for token in tokens:
         # If the token is an operand
         # for i, s in enumerate(stack):
         #     print(i, s)
-        if token.isalnum():
+        if token not in "*)^/+-(*":
+            
             # Create a new node with the token as its value and push it onto the stack
-            node = Node(token)
+            if token == "x":
+                node = Node(token)
+            else:
+                node = Node(int(token))
+
             stack.append(node)
         # If the token is an operator
         elif token == "(":
@@ -141,7 +165,7 @@ def build_tree(tokens):
     return tree
 
 def calculate_tree(node, x):
-    if node.value.isnumeric():
+    if type(node.value) == int:
         return int(node.value)
     elif node.value == 'x':
         return x
@@ -161,7 +185,7 @@ def calculate_tree(node, x):
 def fix2(tokens):
     i = 0
     while i < len(tokens):
-        if tokens[i] == "**":
+        if tokens[i] == "^":
             if i+1 < len(tokens) - 1 and tokens[i+1] == "(":
                 #while
                 n = i
@@ -214,9 +238,31 @@ def print_infix(node):
         print(node.value, end=" ")
         print_infix(node.right)
 
+
+equation1 = "-2*x**4 + -3*x**3 + -1*x**2 + -4*x + +2"
+equation2 = "2*x**4 + 3*x**3 + 1*x**2 + -4*x + 2"
+eq = "4*x**5 + 4*x + 5"
+eq2 = "-4*x**5 + -4*x + 5"
+
+eq3 = "-2*4"
+
+
+tokens = parse_equation1(eq3)
+print(tokens)
+
+fix_sorted_tokens = fix2(tokens)
+print(fix_sorted_tokens)
+
+sorted_tokens = sort_tokens(fix_sorted_tokens)
+tree = build_tree(sorted_tokens)
+rez = calculate_tree(tree, 2)
+print(rez)
+
+
 # Test the functions with an example equation
-# equation = "((x ** 4) - 6)"
-# equation1 = "x + (3 - 4)"
+# equation = "-2*x**4 + -3*x**3 + -1*x**2 + -4*x + +2"
+# tokens = parse_equation1(equation)
+# print(tokens)
 # eq2 = "x + 3 * 3 - 2 + 1 / 2"
 # eq = "(((x - 1) - 3) / 5)"
 
@@ -231,8 +277,7 @@ def print_infix(node):
 # print_infix(tree)
 
 
-# rez = calculate_tree(tree, 2)
-# print(rez)
+
 
 
 
