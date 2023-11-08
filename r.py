@@ -1,3 +1,6 @@
+from pyparsing import Word, nums, alphas, oneOf
+
+
 # Define a class for tree nodes
 class Node:
     def __init__(self, value):
@@ -9,8 +12,6 @@ class Node:
         return self.value
 
 # Define a function to parse an equation and convert it into a list of tokens
-# x + 2 
-# x + ( 3 - 4 )
 def parse_equation(string):
     tokens = []
     star = 0
@@ -44,12 +45,24 @@ def parse_equation(string):
         tokens.append(number)
     return tokens
 
+def parse_equation1(string):
+    tokens = []
+    no_white = string.replace(" ","")
+    another = no_white.replace("**", "^")
+    for c in another:
+        tokens.append(c)
+
+    # for i in range(len(tokens)):
+
+    
+    return tokens
+
 #put the equation into correct form
 def sort_tokens(tokens):
     i = 0
     operator = False
     while i <= len(tokens)-1:
-        if tokens[i] == "**" or tokens[i] in "*-+/":
+        if tokens[i] == "**" or tokens[i] in "*-+/^":
             if i + 1 < len(tokens)-1 and tokens[i+1] == "(":
                 j = i + 1
                 while tokens[j] != ")":
@@ -68,59 +81,15 @@ def sort_tokens(tokens):
         else:
             operator = False
         i += 1
-        
-
+    
     return tokens
         
-def fix_sort(tokens):
-    operations = [[]]
-    base = []
-    index = 0
-
-    highest = ['**']
-    high = ['*', '/']
-    low = ['+', '-']
-
-    for c in tokens:
-        cur = operations[index]
-        if c == "**" or c in "*/+-":
-            cur.append(c)
-        elif c == "(":
-            index += 1
-            temp = []
-            operations.append(temp)
-        elif c == ")":
-            index -= 1
-    
-    for seg in operations:
-        for i in range(1, len(seg)):
-            while seg[i] in high and seg[i-1] in low or (seg[i] in highest and seg[i-1] in high) or (seg[i] in highest and seg[i-1] in low):
-                temp = seg[i - 1]
-                seg[i - 1] = seg[i]
-                seg[i] = temp
-    print(operations)
-
-    indexOp = 0
-    index = 0
-    for i in range(len(tokens)):
-        if tokens[i] == "**" or tokens[i] in "*/+-":
-            op = operations[indexOp].pop(0)
-            tokens[i] = op
-        elif tokens[i] == "(":
-            indexOp += 1
-        elif tokens[i] == ")":
-            indexOp -= 1
-    print(tokens)
-
-
-
-
 
 def build_tree(tokens):
     # Create an empty stack and an empty tree
     stack = []
     tree = None
-
+    operator = False;
     # For each token in the list
     for token in tokens:
         # If the token is an operand
@@ -136,7 +105,7 @@ def build_tree(tokens):
             stack.append(token)
         # If the token is a closing parenthesis
 
-        elif token == "**" or token in "+-*/":
+        elif token in "+-*/^":
             # Pop two nodes from the stack and create a new node with the token as its value and
             # the popped nodes as its left and right children
             right = stack.pop()
@@ -155,11 +124,14 @@ def build_tree(tokens):
             last = node
             while node != "(":
                 last = node
+
                 node = stack.pop()
                 # The last popped node is the root of a subtree that corresponds to the expression
                 # inside the parentheses
                 # Push this node onto the stack
                 stack.append(last)
+            
+
 
     # After processing all the tokens, there should be only one node left on the stack
     # This node is the root of the tree that represents the equation
@@ -168,26 +140,7 @@ def build_tree(tokens):
     # Return the tree
     return tree
 
-
-# Test the functions with an example equation
-
-
-
-
-# Print the tree in infix form using inorder traversal
-# def print_infix(node):
-#     if node:
-#         left = node.left
-#         l = print_infix(left)
-#         if (left.value.isnumeric()):
-
-#         d = print_infix(node.right)
-
-        
 def calculate_tree(node, x):
-    
-    
-
     if node.value.isnumeric():
         return int(node.value)
     elif node.value == 'x':
@@ -201,13 +154,15 @@ def calculate_tree(node, x):
             return calculate_tree(node.left, x) * calculate_tree(node.right, x)
         elif node.value == '/':
             return calculate_tree(node.left, x) / calculate_tree(node.right, x)
-        elif node.value == '**':
+        elif node.value == '^':
             return calculate_tree(node.left, x) ** calculate_tree(node.right, x)
+
+
 def fix2(tokens):
     i = 0
     while i < len(tokens):
         if tokens[i] == "**":
-            if tokens[i+1] == "(":
+            if i+1 < len(tokens) - 1 and tokens[i+1] == "(":
                 #while
                 n = i
                 while tokens[n] != ")":
@@ -231,7 +186,7 @@ def fix2(tokens):
     i = 0
     while i < len(tokens):
         if tokens[i] in "*/":
-            if tokens[i+1] == "(":
+            if i+1 < len(tokens) - 1 and tokens[i+1] == "(":
                 #while
                 n = i
                 while tokens[n] != ")":
@@ -253,20 +208,35 @@ def fix2(tokens):
         i += 1
     return tokens
 
-# fix_sort(tokens)
-equation = "(x + 10) * 5 + 9/2"
-equation1 = "x + 3 - 4 * 3 - 2 / 1"
+def print_infix(node):
+    if node:
+        print_infix(node.left)
+        print(node.value, end=" ")
+        print_infix(node.right)
 
-tokens1 = parse_equation(equation1)
-print(tokens1)
+# Test the functions with an example equation
+# equation = "((x ** 4) - 6)"
+# equation1 = "x + (3 - 4)"
+# eq2 = "x + 3 * 3 - 2 + 1 / 2"
+# eq = "(((x - 1) - 3) / 5)"
 
-tokens3 = fix2(tokens1)
-print(tokens3)
-tokens = sort_tokens(tokens3)
+# tokens = parse_equation1(equation1)
+# fix_sorted_tokens = fix2(tokens)
+# ##dela 
 
-# print(tokens)
+# sorted_tokens = sort_tokens(fix_sorted_tokens)
+# print(sorted_tokens)
+
+# tree = build_tree(sorted_tokens)
+# print_infix(tree)
 
 
-tree = build_tree(tokens)
-n = calculate_tree(tree, 5)
-print(n)
+# rez = calculate_tree(tree, 2)
+# print(rez)
+
+
+
+
+# Print the tree in infix form using inorder traversal
+# 
+# print_infix(tree)
