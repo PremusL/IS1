@@ -56,8 +56,12 @@ def parse_equation1(string):
     operand = False
     if (tokens[0] == '-'):
         tokens2.append(str(int(tokens[1])*-1))
-    
-    for i in range(len(tokens)):
+        operand = True
+    start = 0
+    if operand:
+        operand = False
+        start = 2
+    for i in range(start, len(tokens)):
 
         if i > 2 and tokens[i-1] in "*^-+/" and (tokens[i] == "-" or tokens[i] == "+"):
             if tokens[i] == "-":
@@ -79,16 +83,26 @@ def parse_equation1(string):
 #put the equation into correct form
 def sort_tokens(tokens):
     i = 0
+    oklepaj = 0
     operator = False
     while i <= len(tokens)-1:
         if tokens[i] == "**" or tokens[i] in "*-+/^":
             if i + 1 < len(tokens)-1 and tokens[i+1] == "(":
                 j = i + 1
-                while tokens[j] != ")":
+                oklepaj += 1
+                while oklepaj != 0:
+                    
                     temp = tokens[j]
                     tokens[j] = tokens[j - 1]
                     tokens[j - 1] = temp
+                    
                     j += 1
+                    if tokens[j] == ")":
+                        oklepaj -= 1
+                    if tokens[j] == "(":
+                        oklepaj += 1
+                    
+
                 i += 1  
             else:
                 temp = tokens[i]
@@ -145,24 +159,19 @@ def build_tree(tokens):
         elif token == ")":
             # Pop nodes from the stack until you reach an opening parenthesis
             node = stack.pop()
-            last = node
+            
+            lastOp = node
             while node != "(":
-                last = node
 
                 node = stack.pop()
-                # The last popped node is the root of a subtree that corresponds to the expression
-                # inside the parentheses
-                # Push this node onto the stack
-                stack.append(last)
-            
-
-
+            stack.append(lastOp)
     # After processing all the tokens, there should be only one node left on the stack
     # This node is the root of the tree that represents the equation
 
     tree = stack.pop()
-    # Return the tree
     return tree
+
+
 
 def calculate_tree(node, x):
     if type(node.value) == int:
@@ -243,20 +252,21 @@ equation1 = "-2*x**4 + -3*x**3 + -1*x**2 + -4*x + +2"
 equation2 = "2*x**4 + 3*x**3 + 1*x**2 + -4*x + 2"
 eq = "4*x**5 + 4*x + 5"
 eq2 = "-4*x**5 + -4*x + 5"
+eq3 = "-2*x**4 + -3*x**3 + -1*x**2 + -4*x + +2"
+e = "x+0**x"
 
-eq3 = "-2*4"
 
+# tokens = parse_equation1(e)
+# print(tokens)
 
-tokens = parse_equation1(eq3)
-print(tokens)
+# fix_sorted_tokens = fix2(tokens)
+# print(fix_sorted_tokens)
 
-fix_sorted_tokens = fix2(tokens)
-print(fix_sorted_tokens)
-
-sorted_tokens = sort_tokens(fix_sorted_tokens)
-tree = build_tree(sorted_tokens)
-rez = calculate_tree(tree, 2)
-print(rez)
+# sorted_tokens = sort_tokens(fix_sorted_tokens)
+# print(sorted_tokens)
+# tree = build_tree(sorted_tokens)
+# rez = calculate_tree(tree, 2)
+# print(rez)
 
 
 # Test the functions with an example equation
