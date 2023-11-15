@@ -186,7 +186,7 @@ def calculate_tree(node, x):
         elif node.value == '*':
             return calculate_tree(node.left, x) * calculate_tree(node.right, x)
         elif node.value == '/':
-            return calculate_tree(node.left, x) / calculate_tree(node.right, x)
+            return calculate_tree(node.left, x) // calculate_tree(node.right, x)
         elif node.value == '^':
             return calculate_tree(node.left, x) ** calculate_tree(node.right, x)
 
@@ -241,11 +241,31 @@ def fix2(tokens):
         i += 1
     return tokens
 
+
 def print_infix(node):
-    if node:
-        print_infix(node.left)
-        print(node.value, end=" ")
-        print_infix(node.right)
+    if node is None:
+        return ''
+    left = print_infix(node.left)
+    right = print_infix(node.right)
+    if left and right:
+        return '{} {} {}'.format(left, node.value, right)
+
+    else:
+        return str(node.value)
+
+
+        
+
+
+def print_infix_parenthesis(node):
+    if node is None:
+        return ''
+    left = print_infix_parenthesis(node.left)
+    right = print_infix_parenthesis(node.right)
+    if left and right:
+        return '({} {} {})'.format(left, node.value, right)
+    else:
+        return str(node.value)
 
 
 equation1 = "-2*x**4 + -3*x**3 + -1*x**2 + -4*x + +2"
@@ -256,16 +276,22 @@ eq3 = "-2*x**4 + -3*x**3 + -1*x**2 + -4*x + +2"
 e = "x+0**x"
 
 
-# tokens = parse_equation1(e)
-# print(tokens)
 
-# fix_sorted_tokens = fix2(tokens)
-# print(fix_sorted_tokens)
+tokens = parse_equation1(eq3)
+print(tokens)
 
-# sorted_tokens = sort_tokens(fix_sorted_tokens)
-# print(sorted_tokens)
-# tree = build_tree(sorted_tokens)
-# rez = calculate_tree(tree, 2)
+fix_sorted_tokens = fix2(tokens)
+print(fix_sorted_tokens)
+
+sorted_tokens = sort_tokens(fix_sorted_tokens)
+print(sorted_tokens)
+tree = build_tree(sorted_tokens)
+rez = calculate_tree(tree, 2)
+k = print_infix(tree)
+
+
+print(k)
+
 # print(rez)
 
 
