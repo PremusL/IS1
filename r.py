@@ -52,18 +52,28 @@ def parse_equation1(string):
     for c in another:
         tokens.append(c)
 
+    start = 0
     tokens2 = []
     operand = False
+
     if (tokens[0] == '-'):
         tokens2.append(str(int(tokens[1])*-1))
         operand = True
-    start = 0
+
+
     if operand:
+
+
         operand = False
         start = 2
+
+    else:
+        start = 0
+
+    
     for i in range(start, len(tokens)):
 
-        if i > 2 and tokens[i-1] in "*^-+/" and (tokens[i] == "-" or tokens[i] == "+"):
+        if i > 1 and tokens[i-1] in "*^-+/" and (tokens[i] == "-" or tokens[i] == "+"):
             if tokens[i] == "-":
                 operand = True
             
@@ -186,7 +196,11 @@ def calculate_tree(node, x):
         elif node.value == '*':
             return calculate_tree(node.left, x) * calculate_tree(node.right, x)
         elif node.value == '/':
-            return calculate_tree(node.left, x) // calculate_tree(node.right, x)
+            x2 = calculate_tree(node.right, x)
+            if x2 == 0:
+                return calculate_tree(node.left, x) // 1
+            return calculate_tree(node.left, x) // x2
+
         elif node.value == '^':
             return calculate_tree(node.left, x) ** calculate_tree(node.right, x)
 
@@ -273,24 +287,27 @@ equation2 = "2*x**4 + 3*x**3 + 1*x**2 + -4*x + 2"
 eq = "4*x**5 + 4*x + 5"
 eq2 = "-4*x**5 + -4*x + 5"
 eq3 = "-2*x**4 + -3*x**3 + -1*x**2 + -4*x + +2"
-e = "x+0**x"
+e = "x*3/x+-3"
 
 
 
-tokens = parse_equation1(eq3)
+
+
+
+tokens = parse_equation1(e)
 print(tokens)
 
-fix_sorted_tokens = fix2(tokens)
-print(fix_sorted_tokens)
+# fix_sorted_tokens = fix2(tokens)
+# print(fix_sorted_tokens)
 
-sorted_tokens = sort_tokens(fix_sorted_tokens)
-print(sorted_tokens)
-tree = build_tree(sorted_tokens)
-rez = calculate_tree(tree, 2)
-k = print_infix(tree)
+# sorted_tokens = sort_tokens(fix_sorted_tokens)
+# print(sorted_tokens)
+# tree = build_tree(sorted_tokens)
+# rez = calculate_tree(tree, 2)
+# k = print_infix(tree)
 
 
-print(k)
+# print(k)
 
 # print(rez)
 
