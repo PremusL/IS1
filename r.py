@@ -202,7 +202,12 @@ def calculate_tree(node, x):
             return calculate_tree(node.left, x) // x2
 
         elif node.value == '^':
-            return calculate_tree(node.left, x) ** calculate_tree(node.right, x)
+            x1 = calculate_tree(node.left, x)
+            if x1 == 0:
+                return 0
+            x2 = calculate_tree(node.right, x)
+            
+            return x1 ** x2
 
 
 def fix2(tokens):
