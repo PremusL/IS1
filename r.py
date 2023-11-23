@@ -194,7 +194,7 @@ def calculate_tree(node, x):
         elif node.value == '-':
             return calculate_tree(node.left, x) - calculate_tree(node.right, x)
         elif node.value == '*':
-            return calculate_tree(node.left, x) * calculate_tree(node.right, x)
+            return round(calculate_tree(node.left, x) * calculate_tree(node.right, x),2)
         elif node.value == '/':
             x2 = calculate_tree(node.right, x)
             if x2 == 0:
@@ -203,11 +203,17 @@ def calculate_tree(node, x):
 
         elif node.value == '^':
             x1 = calculate_tree(node.left, x)
-            if x1 == 0:
+            if x1 < 0.0001:
                 return 0
-            x2 = calculate_tree(node.right, x)
             
-            return x1 ** x2
+            x2 = calculate_tree(node.right, x)
+            if x2 < 0.0001:
+                return 0
+
+            x3 = x1 ** x2
+            if x3 > 10_000_000:
+                return 10_000_000
+            return round(x3,1)
 
 
 def fix2(tokens):
@@ -299,8 +305,8 @@ e = "x*3/x+-3"
 
 
 
-tokens = parse_equation1(e)
-print(tokens)
+# tokens = parse_equation1(e)
+# print(tokens)
 
 # fix_sorted_tokens = fix2(tokens)
 # print(fix_sorted_tokens)
