@@ -1,7 +1,5 @@
-from pyparsing import Word, nums, alphas, oneOf
 import math
 
-# Define a class for tree nodes
 class Node:
     def __init__(self, value):
         self.value = value
@@ -10,40 +8,6 @@ class Node:
 
     def __str__(self):
         return self.value
-
-# Define a function to parse an equation and convert it into a list of tokens
-# def parse_equation(string):
-#     tokens = []
-#     star = 0
-#     number = ''
-#     for c in string:
-#         if (c in "-+*/()") or c.isalpha():
-
-#             if (number != ''):
-#                 tokens.append(number)
-#                 number = ''
-#             if c == '*':
-#                 star += 1
-#                 continue
-#             else:
-#                 tokens.append(c)
-            
-#             if star > 1:
-#                 tokens.append('**')
-#                 star = 0
-#             if star == 1:
-#                 tokens.append('*')
-#                 tokens.append(c)
-#                 star = 0
-#         if c.isnumeric():
-#             if (star == 1):
-#                 tokens.append("*")
-#                 star = 0
-#             number += c
-
-#     if number != '':
-#         tokens.append(number)
-#     return tokens
 
 def parse_equation1(string):
     tokens = []
@@ -57,10 +21,6 @@ def parse_equation1(string):
     another = another.replace("^1","")
     another = another.replace("/1","")
     another = another.replace("*1","")
-
-
-
-
 
     for c in another:
         tokens.append(c)
@@ -157,18 +117,12 @@ def sort_tokens(tokens):
     return tokens
         
 def build_tree(tokens):
-    # Create an empty stack and an empty tree
+
     stack = []
     tree = None
 
-    # For each token in the list
     for token in tokens:
-        # If the token is an operand
-        # for i, s in enumerate(stack):
-        #     print(i, s)
         if token not in "*)^/+-(*":
-            
-            # Create a new node with the token as its value and push it onto the stack
             if token in "sxcxlxx":
                 node = Node(token)
             else:
@@ -176,17 +130,12 @@ def build_tree(tokens):
                     node = Node(token)
                 else:
                     node = Node(int(token))
-
             stack.append(node)
-        # If the token is an operator
         elif token == "(":
-            # Push it onto the stack
+
             stack.append(token)
-        # If the token is a closing parenthesis
 
         elif token in "+-*/^":
-            # Pop two nodes from the stack and create a new node with the token as its value and
-            # the popped nodes as its left and right children
             right = stack.pop()
             left = stack.pop()
 
@@ -196,9 +145,7 @@ def build_tree(tokens):
             node.right = right
             stack.append(node)
         
-
         elif token == ")":
-            # Pop nodes from the stack until you reach an opening parenthesis
             node = stack.pop()
             
             lastOp = node
@@ -206,9 +153,6 @@ def build_tree(tokens):
 
                 node = stack.pop()
             stack.append(lastOp)
-    # After processing all the tokens, there should be only one node left on the stack
-    # This node is the root of the tree that represents the equation
-
     tree = stack.pop()
     return tree
 
