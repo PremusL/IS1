@@ -49,6 +49,19 @@ def parse_equation1(string):
     tokens = []
     no_white = string.replace(" ","")
     another = no_white.replace("**", "^")
+    another = another.replace("sin", "s")
+    another = another.replace("cos", "c")
+    another = another.replace("log", "l")
+
+    #simplify
+    another = another.replace("^1","")
+    another = another.replace("/1","")
+    another = another.replace("*1","")
+
+
+
+
+
     for c in another:
         tokens.append(c)
 
@@ -88,7 +101,23 @@ def parse_equation1(string):
             operand = False
             
 
-    return tokens2
+    # zdruzi vse sinuse.... v isti char
+    tokens3 = []
+    combine = False
+    for i in range(len(tokens2)):
+        if combine:
+            combine = False
+            continue
+        if tokens2[i] in "scl":
+            pair = tokens2[i]+tokens2[i+1]
+            tokens3.append(pair)
+            combine = True
+
+        else:
+            tokens3.append(str(tokens2[i]))
+
+    return tokens3
+
 
 #put the equation into correct form
 def sort_tokens(tokens):
@@ -127,7 +156,6 @@ def sort_tokens(tokens):
     
     return tokens
         
-
 def build_tree(tokens):
     # Create an empty stack and an empty tree
     stack = []
@@ -141,10 +169,13 @@ def build_tree(tokens):
         if token not in "*)^/+-(*":
             
             # Create a new node with the token as its value and push it onto the stack
-            if token == "x":
+            if token in "sxcxlxx":
                 node = Node(token)
             else:
-                node = Node(int(token))
+                if not token[0].isnumeric():
+                    node = Node(token)
+                else:
+                    node = Node(int(token))
 
             stack.append(node)
         # If the token is an operator
@@ -186,20 +217,45 @@ def build_tree(tokens):
 def calculate_tree(node, x):
     if type(node.value) == int:
         return int(node.value)
+    if len(node.value) > 1 and node.value[0] == '-':
+        return int(node.value)
+    # sinus
+    if node.value[0] == 's':
+        if (node.value[1] == 'x'):
+            return math.sin(x)
+        value = node.value[1:]
+        return math.sin(int(value))
+    
+    # cosinus
+    if node.value[0] == 'c':
+        if (node.value[1] == 'x'):
+            return math.cos(x)
+        value = node.value[1:]
+        return math.cos(int(value))
+    
+    # logaritem
+    if node.value[0] == 'l':
+        if (node.value[1] == 'x'):
+            return math.log(x)
+        value = node.value[1:]
+        return math.log(int(value))
+
     elif node.value == 'x':
         return x
     else:
         if node.value == '+':
-            return calculate_tree(node.left, x) + calculate_tree(node.right, x)
+            return calculate_tree(node.left,x) + calculate_tree(node.right,x)
         elif node.value == '-':
             return calculate_tree(node.left, x) - calculate_tree(node.right, x)
         elif node.value == '*':
             return round(calculate_tree(node.left, x) * calculate_tree(node.right, x),2)
         elif node.value == '/':
             x2 = calculate_tree(node.right, x)
+            x1 = calculate_tree(node.left, x)
+
             if x2 == 0:
-                return calculate_tree(node.left, x) // 1
-            return calculate_tree(node.left, x) // x2
+                return x1 // 1
+            return x1 // x2
 
         elif node.value == '^':
             x1 = calculate_tree(node.left, x)
@@ -210,10 +266,13 @@ def calculate_tree(node, x):
             if x2 < 0.0001:
                 return 0
 
-            x3 = x1 ** x2
-            if x3 > 10_000_000:
+            try:
+                x3 = round(x1 ** x2)
+                if x3 > 10_000_000:
+                    return 10_000_000
+                return round(x3,1)
+            except OverflowError as e:
                 return 10_000_000
-            return round(x3,1)
 
 
 def fix2(tokens):
@@ -292,34 +351,44 @@ def print_infix_parenthesis(node):
     else:
         return str(node.value)
 
+def pretty_print(string):
+    printable = ""
+    for c in string:
+        if c =='l':
+            printable += "ln "
+        elif c == 's':
+            printable += "sin "
+        elif c == 'c':
+            printable += "cos "
+        else:
+            printable +=f"{c}"
+    print(printable)
+
 
 equation1 = "-2*x**4 + -3*x**3 + -1*x**2 + -4*x + +2"
 equation2 = "2*x**4 + 3*x**3 + 1*x**2 + -4*x + 2"
 eq = "4*x**5 + 4*x + 5"
 eq2 = "-4*x**5 + -4*x + 5"
 eq3 = "-2*x**4 + -3*x**3 + -1*x**2 + -4*x + +2"
-e = "x*3/x+-3"
+e = "x*3/x+-3+x**1"
 
 
+# extreme = "x-4-sinx*1-log2-2"
+e1 = "x**x-log7-1/-3"
+e2 = "x--3"
 
+tokens = parse_equation1(e1)
+print(tokens)
 
+fix_sorted_tokens = fix2(tokens)
+print(fix_sorted_tokens)
 
-
-# tokens = parse_equation1(e)
-# print(tokens)
-
-# fix_sorted_tokens = fix2(tokens)
-# print(fix_sorted_tokens)
-
-# sorted_tokens = sort_tokens(fix_sorted_tokens)
-# print(sorted_tokens)
-# tree = build_tree(sorted_tokens)
-# rez = calculate_tree(tree, 2)
-# k = print_infix(tree)
-
-
-# print(k)
-
+sorted_tokens = sort_tokens(fix_sorted_tokens)
+print(sorted_tokens)
+tree = build_tree(sorted_tokens)
+rez = calculate_tree(tree, 2)
+k = print_infix(tree)
+pretty_print(k)
 # print(rez)
 
 
