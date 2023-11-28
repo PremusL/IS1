@@ -112,6 +112,19 @@ def infixString(node):
 
     else:
         return str(node.value)
+    
+
+def pick2trees(dictionary):
+    e1 = random.choice(tuple(dictionary.items()))
+    e2 = random.choice(tuple(dictionary.items()))
+
+    tree_e1 = get_exp_fromArr(str(e1[1]))
+    tree_e2 = get_exp_fromArr(str(e2[1]))
+
+    # k1 = print_infix(tree_e1)
+    # k2 = print_infix(tree_e2)
+
+    return tree_e1, tree_e2
 
 # %%
 # swap1,swap2 = crossover(tree1,tree2)

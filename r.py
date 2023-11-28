@@ -1,4 +1,7 @@
 import math
+import random
+import numpy as np
+import json
 
 class Node:
     def __init__(self, value):
@@ -192,7 +195,7 @@ def calculate_tree(node, x):
         elif node.value == '-':
             return calculate_tree(node.left, x) - calculate_tree(node.right, x)
         elif node.value == '*':
-            return round(calculate_tree(node.left, x) * calculate_tree(node.right, x),2)
+            return calculate_tree(node.left, x) * calculate_tree(node.right, x)
         elif node.value == '/':
             x2 = calculate_tree(node.right, x)
             x1 = calculate_tree(node.left, x)
@@ -281,10 +284,6 @@ def print_infix(node):
     else:
         return str(node.value)
 
-
-        
-
-
 def print_infix_parenthesis(node):
     if node is None:
         return ''
@@ -308,31 +307,183 @@ def pretty_print(string):
             printable +=f"{c}"
     print(printable)
 
+def mutate_value(expression):
+    tokens = parse_equation1(expression)
+    for i,c in enumerate(tokens):
+        # print(c)
+        if c not in "sinxcoslogxx*/()-+" and c != "x":
+            mutateBool = [True, False]
+            if random.choice(mutateBool):
+                rand_vals = [str(random.randint(-9, -1)),
+                              str(random.randint(1, 9)), f"log{str(random.randint(1,9))}","logx","sinx","cosx",
+                              f"sin{str(random.randint(1,9))}",f"cos{str(random.randint(1,9))}"]
+                new_val = random.choice(rand_vals)
+                tokens[i] = new_val
+    return tokens
 
-equation1 = "-2*x**4 + -3*x**3 + -1*x**2 + -4*x + +2"
-equation2 = "2*x**4 + 3*x**3 + 1*x**2 + -4*x + 2"
-eq = "4*x**5 + 4*x + 5"
-eq2 = "-4*x**5 + -4*x + 5"
-eq3 = "-2*x**4 + -3*x**3 + -1*x**2 + -4*x + +2"
-e = "x*3/x+-3+x**1"
+
+def mutate_operation(expression):
+    tokens = parse_equation1(expression)
+    for i,c in enumerate(tokens):
+        # print(c)
+        if c in "*/-+^":
+            mutateBool = [True, False, False]
+            if random.choice(mutateBool):
+                rand_op = ["+", "-", "*","/", "**"]
+                new_val = random.choice(rand_op)
+                tokens[i] = new_val
+    return tokens
+
+def generate_expression(numTerms, x_index):
+    operators = ["+", "-", "*","/", "**"]
+    vals = [str(random.randint(1, 9)),str(random.randint(1, 9)),
+            str(random.randint(1, 9)),str(random.randint(1, 9)),
+            str(random.randint(1, 9)),str(random.randint(1, 9)),
+            str(random.randint(1, 9)),str(random.randint(1, 9)),
+            str(random.randint(1, 9)),
+              "x", f"log{str(random.randint(1,9))}",
+              "logx","sinx","cosx",
+              f"sin{str(random.randint(1,9))}",
+              f"cos{str(random.randint(1,9))}"]
+    vals2 = str(random.randint(1, 9))
+    
+    num_terms = random.randint(numTerms, 2+numTerms)
+    
+    x_index %= numTerms
+    correct = False
+    while not correct:
+        correct = True
+        terms = []
+        del terms[:]
+        x = 0
+        for i in range(num_terms):
+            
+            op = random.choice(operators)
+            num = random.choice(vals)
+
+            if x_index == i:
+                if i > 0 and terms[i-1] == "**":
+                    correct = False
+                    break     #da ne dobimo neki**x
+                else:
+                    num = "x"
+                    x += 1
+            else:
+                if i > 0 and terms[i-1] == "**":
+                    
+                    if num == "x":
+                        correct = False
+                        break
+            terms.append(num)
+            terms.append(op)
+
+        terms.append(vals2)
+        expression = "".join(terms)
+
+    return expression
 
 
-# extreme = "x-4-sinx*1-log2-2"
-e1 = "x**x-log7-1/-3"
-e2 = "x--3"
+def fitness_primitive(guess_eq, df, index):
+    row = df.iloc[index]
+    Xs = json.loads(row['Xs'])
+    
+    Ys = json.loads(row['Ys'])
+    real_eq = row['Equation']
 
-tokens = parse_equation1(e1)
-print(tokens)
+    tokens = parse_equation1(guess_eq)
 
-fix_sorted_tokens = fix2(tokens)
-print(fix_sorted_tokens)
+    fix_tokens = fix2(tokens)
+    sorted_tokens = sort_tokens(fix_tokens)
+    tree = build_tree(sorted_tokens)
+    fitnessVal = 0
+    for i in range(len(Xs)):
+        rez = calculate_tree(tree, int(Xs[i]))
+        real_val = int(Ys[i])
+        sub = round(np.abs(real_val - rez), 3)
+        if sub > 10000000:
+            return 0
+        else:    
+            if sub == 0:
+                fitnessVal += 999
+            else:
+                fitnessVal += round(1/sub,5)
+    return fitnessVal
 
-sorted_tokens = sort_tokens(fix_sorted_tokens)
-print(sorted_tokens)
-tree = build_tree(sorted_tokens)
-rez = calculate_tree(tree, 2)
-k = print_infix(tree)
-pretty_print(k)
+
+def fitness_MSE(guess_eq, df, index):
+    row = df.iloc[index]
+    Xs = json.loads(row['Xs'])
+    
+    Ys = json.loads(row['Ys'])
+    real_eq = row['Equation']
+
+    tokens = parse_equation1(guess_eq)
+
+    fix_tokens = fix2(tokens)
+    sorted_tokens = sort_tokens(fix_tokens)
+    tree = build_tree(sorted_tokens)
+    fitnessVal = 0
+
+    MSE_error = []
+    for i in range(len(Xs)):
+        rez = (calculate_tree(tree, int(Xs[i])))
+        if (rez > 0):
+            rez = math.log(rez)
+        real_val = int((Ys[i]))
+        if real_val > 0:
+            real_val=math.log(real_val)
+
+        sub = real_val - rez
+        sub = sub
+        try:
+            MSE = (sub)**2
+            # if MSE > 0:
+            #     MSE = math.abs(MSE)
+        except (OverflowError):
+            return np.inf
+
+        MSE_error.append(MSE)
+    
+    return round(sum(MSE_error)/len(MSE_error),5)
+
+
+def sort_dict(dict):
+    return {k: dict[k] for k in sorted(dict, reverse=False)}
+
+def arr_to_string(array):
+    return ''.join(map(str, array))
+
+
+
+
+
+# expression = generate_expression(3, 21)
+# print(expression)
+
+# equation1 = "-2*x**4 + -3*x**3 + -1*x**2 + -4*x + +2"
+# equation2 = "2*x**4 + 3*x**3 + 1*x**2 + -4*x + 2"
+# eq = "4*x**5 + 4*x + 5"
+# eq2 = "-4*x**5 + -4*x + 5"
+# eq3 = "-2*x**4 + -3*x**3 + -1*x**2 + -4*x + +2"
+# e = "x*3/x+-3+x**1"
+
+
+# # extreme = "x-4-sinx*1-log2-2"
+# e1 = "x**x-log7-1/-3"
+# e2 = "x--3"
+
+# tokens = parse_equation1(e1)
+# print(tokens)
+
+# fix_sorted_tokens = fix2(tokens)
+# print(fix_sorted_tokens)
+
+# sorted_tokens = sort_tokens(fix_sorted_tokens)
+# print(sorted_tokens)
+# tree = build_tree(sorted_tokens)
+# rez = calculate_tree(tree, 2)
+# k = print_infix(tree)
+# pretty_print(k)
 # print(rez)
 
 
@@ -357,8 +508,3 @@ pretty_print(k)
 
 
 
-
-
-# Print the tree in infix form using inorder traversal
-# 
-# print_infix(tree)
