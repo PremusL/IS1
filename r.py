@@ -338,8 +338,6 @@ def generate_expression(numTerms, x_index):
     operators = ["+", "-", "*","/", "**"]
     vals = [str(random.randint(1, 9)),str(random.randint(1, 9)),
             str(random.randint(1, 9)),str(random.randint(1, 9)),
-            str(random.randint(1, 9)),str(random.randint(1, 9)),
-            str(random.randint(1, 9)),str(random.randint(1, 9)),
             str(random.randint(1, 9)),
               "x", f"log{str(random.randint(1,9))}",
               "logx","sinx","cosx",
