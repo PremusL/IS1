@@ -441,8 +441,10 @@ def fitness_MSE(guess_eq, df, index):
             return np.inf
 
         MSE_error.append(MSE)
+        penalty = len(guess_eq)*0.1
+
     
-    return round(sum(MSE_error)/len(MSE_error),5)
+    return round(sum(MSE_error)/len(MSE_error)+penalty,5)
 
 
 def sort_dict(dict):
